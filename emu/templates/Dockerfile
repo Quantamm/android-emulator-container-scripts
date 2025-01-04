@@ -67,5 +67,5 @@ HEALTHCHECK --interval=30s \
             CMD /android/sdk/platform-tools/adb shell getprop dev.bootcomplete | grep "1"
 
 LABEL maintainer="{{user}}" \
-      com.google.android.emulator.description="Pixel 2 Emulator, running API {{api}}" \
+      com.google.android.emulator.description="{{avd_name}} Emulator, running API {{api}}" \
       com.google.android.emulator.version="{{tag}}-{{api}}-{{abi}}/{{emu_build_id}}"

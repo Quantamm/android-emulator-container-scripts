@@ -31,10 +31,11 @@ class EmulatorContainer(DockerContainer):
     NO_METRICS_MESSAGE = "No metrics are collected when running this container."
 
     def __init__(
-        self, emulator, system_image_container, repository=None, metrics=False, extra=""
+        self, emulator, system_image_container, avd_name, repository=None, metrics=False, extra=""
     ):
         self.emulator_zip = AndroidReleaseZip(emulator)
         self.system_image_container = system_image_container
+        self.avd_name = avd_name
         self.metrics = metrics
 
         if type(extra) is list:

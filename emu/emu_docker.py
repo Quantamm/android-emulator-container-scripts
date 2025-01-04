@@ -103,7 +103,7 @@ def create_docker_image(args):
             continue
 
         emu_docker = EmulatorContainer(
-            emulator, sys_docker, args.repo, cfg.collect_metrics(), args.extra
+            emulator, sys_docker, "Pixel2", args.repo, cfg.collect_metrics(), args.extra
         )
         emu_docker.build(Path(args.dest) / "emulator")
 
@@ -138,7 +138,7 @@ def create_docker_image_interactive(args):
     if not sys_docker.available() and not sys_docker.can_pull():
         sys_docker.build(args.dest)
 
-    emu_docker = EmulatorContainer(emu_zip, sys_docker, args.repo, metrics)
+    emu_docker = EmulatorContainer(emu_zip, sys_docker, "Pixel2", args.repo, metrics)
     emu_docker.build(args.dest)
 
     if args.start:
