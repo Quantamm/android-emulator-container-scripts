@@ -29,6 +29,7 @@ from emu.cloud_build import cloud_build
 from emu.containers.emulator_container import EmulatorContainer
 from emu.containers.system_image_container import SystemImageContainer
 from emu.docker_config import DockerConfig
+from emu.avd_selector import AVDSelector
 
 import emu
 
@@ -120,6 +121,7 @@ def create_docker_image(args):
 def create_docker_image_interactive(args):
     """Interactively create a docker image by selecting the desired combination from a menu."""
     img = emu_downloads_menu.select_image(args.arm) or sys.exit(1)
+    avd_name = AVDSelector().select_avd() or sys.exit(1)
     emulator = emu_downloads_menu.select_emulator() or sys.exit(1)
     cfg = DockerConfig()
     metrics = False

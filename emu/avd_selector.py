@@ -9,20 +9,24 @@ class AVDSelector:
         """Prompts the user to select an AVD config file from the available templates.
 
         Returns:
-            The path to the selected AVD config file, or None if no selection is made.
+            The basename of the selected AVD config file (without .ini extension), or None if no selection is made.
         """
-        files = glob.glob('emu/templates/avd/*.ini')
+        # Get the directory of the current script
+        script_dir = os.path.dirname(__file__)
+        avd_path = os.path.join(script_dir, 'templates/avd/*.ini')
+
+        files = glob.glob(avd_path)
         if not files:
             print("No AVD config files found in emu/templates/avd/")
             return None
 
-        display = [os.path.basename(f) for f in files]
+        display = [os.path.splitext(os.path.basename(f))[0] for f in files]
 
         selection = SelectionMenu.get_selection(
             display, title="Select the AVD config file you wish to use:"
         )
 
-        if selection < len(files):
-            return files[selection]
+        if selection < len(display):
+            return display[selection]
         else:
             return None
