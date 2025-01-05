@@ -77,8 +77,8 @@ class EmulatorContainer(DockerContainer):
         self.clean(dest)
 
         writer = TemplateWriter(dest)
-        writer.write_template(f"avd/{avd_name}.ini", self.props)
-        writer.write_template(f"avd/{avd_name}.avd/config.ini", self.props)
+        writer.write_template(f"avd/{self.avd_name}.ini", self.props)
+        writer.write_template(f"avd/{self.avd_name}.avd/config.ini", self.props)
 
         # Include a README.MD message.
         writer.write_template(
@@ -88,7 +88,7 @@ class EmulatorContainer(DockerContainer):
         )
 
         writer.write_template(
-            "launch-emulator.sh", {"extra": self.extra, "version": emu.__version__, "avd_name": self.props["avd_name"]}
+            "launch-emulator.sh", {"extra": self.extra, "version": emu.__version__, "avd_name": self.avd_name}
         )
         writer.write_template("default.pa", {})
 
