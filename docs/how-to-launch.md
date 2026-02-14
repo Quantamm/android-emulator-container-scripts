@@ -193,9 +193,13 @@ emu-docker list --arm   # Also show ARM images
 Output format:
 
 ```
-SYSIMG <variant> <api> <codename> <abi> <url>
+SYSIMG <codename> <tag> <abi> <api> <url> [<variant>]
 EMU <channel> <version> <os> <url>
 ```
+
+The optional `[<variant>]` suffix (e.g. `[ext18]`, `[Baklava]`) appears when
+multiple system images share the same API level but differ by extension or
+preview version.
 
 ### emu-docker interactive
 
@@ -235,7 +239,7 @@ emu-docker create <emuzip> <imgzip> [flags]
 | Argument | Description |
 |---|---|
 | `emuzip` | Emulator zip file path, or one of: `stable`, `canary`, `all`, or a numeric build ID. Using a build ID downloads an untested pre-release build. |
-| `imgzip` | System image zip file path, or a regex matching the image to retrieve. All matching images are selected. Example: `"P google_apis_playstore x86_64"`. Use `emu-docker list` to see available images. |
+| `imgzip` | System image zip file path, or a regex matching the image to retrieve. All matching images are selected. Examples: `"P google_apis_playstore x86_64"`, `"W google_apis x86_64 \[ext19\]"`. Use `emu-docker list` to see available images. |
 
 **Flags:**
 

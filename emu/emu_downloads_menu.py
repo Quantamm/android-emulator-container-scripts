@@ -158,6 +158,16 @@ class SysImgInfo(LicensedObject):
             self.tag = "android"
         self.abi = details.find("abi").text
 
+        # Extract variant suffix from package path (e.g., "ext19" from "android-36-ext19")
+        path_segments = pkg.attrib.get("path", "").split(";")
+        self.variant = ""
+        if len(path_segments) >= 2:
+            android_segment = path_segments[1]  # e.g., "android-36-ext19"
+            # Strip "android-" prefix, then remove the base API level/name to get the suffix
+            match = re.match(r"^android-(?:\d+(?:\.\d+)?|[A-Za-z]+)[-.]?(.*)", android_segment)
+            if match:
+                self.variant = match.group(1)
+
         # prefer a url for a Linux host in case there are multiple
         url_element = pkg.find(".//archive[host-os='linux']/complete/url")
         # fallback is to pick the first url
@@ -193,7 +203,10 @@ class SysImgInfo(LicensedObject):
         return super(SysImgInfo, self).download(self.url, dest)
 
     def __str__(self):
-        return "{} {} {}".format(self.letter, self.tag, self.abi)
+        base = "{} {} {}".format(self.letter, self.tag, self.abi)
+        if self.variant:
+            return "{} [{}]".format(base, self.variant)
+        return base
 
 
 class EmuInfo(LicensedObject):
@@ -248,8 +261,26 @@ def get_images_info(arm=False):
     licenses = dict([(x.name, x) for x in [y for y in licenses]])
 
     xml = [ET.fromstring(x).findall("remotePackage") for x in xml]
-    # Flatten the list of lists into a system image objects.
-    infos = [SysImgInfo(item, licenses) for sublist in xml for item in sublist]
+    # Flatten and deduplicate by path, keeping the highest revision per path.
+    # The XML can contain multiple entries for the same path (e.g. different
+    # revisions or OS-specific archives), which causes duplicate menu entries.
+    best_by_path = {}
+    for sublist in xml:
+        for pkg in sublist:
+            path = pkg.attrib.get("path", "")
+            rev_el = pkg.find("revision/major")
+            rev = int(rev_el.text) if rev_el is not None else 0
+            has_linux = pkg.find(".//archive[host-os='linux']") is not None
+            prev = best_by_path.get(path)
+            if prev is None:
+                best_by_path[path] = (rev, has_linux, pkg)
+            else:
+                prev_rev, prev_linux, _ = prev
+                # Prefer higher revision, then prefer packages with a Linux archive
+                if (rev, has_linux) > (prev_rev, prev_linux):
+                    best_by_path[path] = (rev, has_linux, pkg)
+    packages = [pkg for _, _, pkg in best_by_path.values()]
+    infos = [SysImgInfo(item, licenses) for item in packages]
     # Filter only for intel images that we know that work
     x86_64_imgs = [
         info for info in infos if info.abi == "x86_64" and info.letter >= MIN_REL_X64
@@ -337,6 +368,7 @@ def select_image(arm):
     img_infos = get_images_info(arm)
     display = [
         f"{img_info.api} {img_info.letter} {img_info.tag} ({img_info.abi})"
+        + (f" [{img_info.variant}]" if img_info.variant else "")
         for img_info in img_infos
     ]
 
@@ -364,9 +396,10 @@ def list_all_downloads(arm):
     emu_infos = get_emus_info()
 
     for img_info in img_infos:
+        variant_suffix = " [{}]".format(img_info.variant) if img_info.variant else ""
         print(
-            "SYSIMG {} {} {} {} {}".format(
-                img_info.letter, img_info.tag, img_info.abi, img_info.api, img_info.url
+            "SYSIMG {} {} {} {} {}{}".format(
+                img_info.letter, img_info.tag, img_info.abi, img_info.api, img_info.url, variant_suffix
             )
         )
 
