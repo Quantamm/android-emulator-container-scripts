@@ -162,7 +162,9 @@ class DockerContainer:
         if local:
             return local.tags[0]
 
-        return ""
+        if self.repo:
+            return f"{self.repo}{self.image_name()}:{self.docker_tag()}"
+        return f"{self.image_name()}:{self.docker_tag()}"
 
     def latest_name(self):
         if self.repo:
