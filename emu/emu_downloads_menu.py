@@ -392,6 +392,47 @@ def download_build(build_id, dest=None):
     return dest
 
 
+def get_device_templates():
+    """Scans emu/templates/avd/ for available device templates.
+
+    Returns a list of dicts with 'name' and 'display_name' keys for each
+    device template that has both a <name>.avd/config.ini and <name>.ini file.
+    """
+    avd_dir = Path(__file__).parent / "templates" / "avd"
+    templates = []
+    for config_ini in sorted(avd_dir.glob("*.avd/config.ini")):
+        device_name = config_ini.parent.name.replace(".avd", "")
+        ini_file = avd_dir / f"{device_name}.ini"
+        if not ini_file.exists():
+            continue
+
+        display_name = device_name
+        for line in config_ini.read_text().splitlines():
+            if line.startswith("avd.ini.displayname="):
+                display_name = line.split("=", 1)[1]
+                break
+
+        templates.append({"name": device_name, "display_name": display_name})
+    return templates
+
+
+def select_device():
+    """Displays an interactive menu to select a device template.
+
+    Returns the device name string (e.g. 'Pixel2', 'PixelTablet') or None if
+    the user exits."""
+    templates = get_device_templates()
+    if not templates:
+        logging.warning("No device templates found in emu/templates/avd/")
+        return None
+
+    display = [t["display_name"] for t in templates]
+    selection = SelectionMenu.get_selection(
+        display, title="Select the device template you wish to use:"
+    )
+    return templates[selection]["name"] if selection < len(templates) else None
+
+
 def accept_licenses(force_accept):
     licenses = set(
         [x.license for x in get_emus_info()] + [x.license for x in get_images_info()]

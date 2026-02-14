@@ -23,6 +23,7 @@ For common issues and fixes, see [TROUBLESHOOTING.md](../TROUBLESHOOTING.md).
   - [emu-docker interactive](#emu-docker-interactive)
   - [emu-docker create](#emu-docker-create)
   - [emu-docker cloud-build](#emu-docker-cloud-build)
+- [Device Templates](#device-templates)
 - [Running Containers with Shell Scripts](#running-containers-with-shell-scripts)
   - [run.sh](#runsh)
   - [run-with-gpu.sh](#run-with-gpush)
@@ -198,12 +199,18 @@ EMU <channel> <version> <os> <url>
 
 ### emu-docker interactive
 
-Interactively select a system image and emulator version from menus, then build
-a Docker image.
+Interactively select a device template, system image, and emulator version from
+menus, then build a Docker image.
 
 ```sh
 emu-docker interactive --start
 ```
+
+The prompts appear in this order:
+
+1. **Device template** — Choose the hardware profile (e.g. Pixel 2, Pixel Tablet).
+2. **System image** — Choose the Android version, tag, and ABI.
+3. **Emulator version** — Choose the emulator build.
 
 | Flag | Default | Description |
 |---|---|---|
@@ -243,6 +250,7 @@ emu-docker create <emuzip> <imgzip> [flags]
 | `--no-metrics` | `false` | Disable collection of usage metrics. |
 | `--start` | `false` | Start the container after creation. Forwards ports 5555 and 8554; injects your `~/.android/adbkey` (not stored). |
 | `--sys` | `false` | Process the system image layer only (skip building the emulator layer). |
+| `--device` | `Pixel2` | Device template to use (e.g. `Pixel2`, `PixelTablet`). Templates are located in `emu/templates/avd/`. |
 | `--extra` | `""` | Additional commands passed to the emulator. Must be the last parameter. Example: `--extra -http-proxy http://proxy.example.com`. |
 
 **Examples:**
@@ -285,6 +293,35 @@ emu-docker cloud-build <emuzip> <img> [flags]
 | `--dest` | `./bld` | Destination for generated Docker files. |
 | `--git` | `false` | Create a git commit and push to the destination. |
 | `--sys` | `false` | Write system image steps only (otherwise writes emulator steps). |
+| `--device` | `Pixel2` | Device template to use (e.g. `Pixel2`, `PixelTablet`). Templates are located in `emu/templates/avd/`. |
+
+---
+
+## Device Templates
+
+Device templates define the hardware profile (screen size, density, orientation,
+etc.) used by the emulated Android device. Templates are stored in
+`emu/templates/avd/` and discovered automatically at runtime.
+
+Each template consists of two files:
+
+- `<DeviceName>.ini` — AVD metadata file.
+- `<DeviceName>.avd/config.ini` — Full hardware configuration.
+
+**Built-in templates:**
+
+| Name | Display Name | Screen | Orientation |
+|---|---|---|---|
+| `Pixel2` | Pixel2 | 1080x1920 @ 440dpi | Portrait |
+| `PixelTablet` | Pixel Tablet | 2560x1600 @ 320dpi | Landscape |
+
+**Adding a new template:**
+
+1. Create `emu/templates/avd/<DeviceName>.ini` (copy from an existing `.ini`).
+2. Create `emu/templates/avd/<DeviceName>.avd/config.ini` with the desired
+   hardware properties. Set `avd.ini.displayname` for the menu label.
+3. The new template will automatically appear in `emu-docker interactive` and
+   be available via `--device <DeviceName>` in `create` and `cloud-build` modes.
 
 ---
 

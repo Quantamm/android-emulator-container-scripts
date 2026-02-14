@@ -103,7 +103,7 @@ def create_docker_image(args):
             continue
 
         emu_docker = EmulatorContainer(
-            emulator, sys_docker, args.repo, cfg.collect_metrics(), args.extra
+            emulator, sys_docker, args.repo, cfg.collect_metrics(), args.extra, device=args.device
         )
         emu_docker.build(Path(args.dest) / "emulator")
 
@@ -119,6 +119,7 @@ def create_docker_image(args):
 
 def create_docker_image_interactive(args):
     """Interactively create a docker image by selecting the desired combination from a menu."""
+    device = emu_downloads_menu.select_device() or sys.exit(1)
     img = emu_downloads_menu.select_image(args.arm) or sys.exit(1)
     emulator = emu_downloads_menu.select_emulator() or sys.exit(1)
     cfg = DockerConfig()
@@ -138,7 +139,7 @@ def create_docker_image_interactive(args):
     if not sys_docker.available() and not sys_docker.can_pull():
         sys_docker.build(args.dest)
 
-    emu_docker = EmulatorContainer(emu_zip, sys_docker, args.repo, metrics)
+    emu_docker = EmulatorContainer(emu_zip, sys_docker, args.repo, metrics, device=device)
     emu_docker.build(args.dest)
 
     if args.start:
@@ -255,6 +256,12 @@ def main():
     create_parser.add_argument(
         "--sys", action="store_true", help="Process system image layer only."
     )
+    create_parser.add_argument(
+        "--device",
+        default="Pixel2",
+        help="Device template to use (e.g. Pixel2, PixelTablet). "
+        "Templates are located in emu/templates/avd/.",
+    )
     create_parser.set_defaults(func=create_docker_image)
 
     create_inter = subparsers.add_parser(
@@ -331,6 +338,12 @@ def main():
         help="A regexp matching the image to retrieve. "
         "All the matching images will be selected when using a regex. "
         'Use the list command to show all available images. For example "P google_apis_playstore x86_64".',
+    )
+    dist_parser.add_argument(
+        "--device",
+        default="Pixel2",
+        help="Device template to use (e.g. Pixel2, PixelTablet). "
+        "Templates are located in emu/templates/avd/.",
     )
     dist_parser.set_defaults(func=create_cloud_build_distribuition)
     args = parser.parse_args()

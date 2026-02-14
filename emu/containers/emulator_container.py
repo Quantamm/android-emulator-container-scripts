@@ -31,9 +31,10 @@ class EmulatorContainer(DockerContainer):
     NO_METRICS_MESSAGE = "No metrics are collected when running this container."
 
     def __init__(
-        self, emulator, system_image_container, repository=None, metrics=False, extra=""
+        self, emulator, system_image_container, repository=None, metrics=False, extra="", device="Pixel2"
     ):
         self.emulator_zip = AndroidReleaseZip(emulator)
+        self.device = device
         self.system_image_container = system_image_container
         self.metrics = metrics
 
@@ -76,8 +77,8 @@ class EmulatorContainer(DockerContainer):
         self.clean(dest)
 
         writer = TemplateWriter(dest)
-        writer.write_template("avd/Pixel2.ini", self.props)
-        writer.write_template("avd/Pixel2.avd/config.ini", self.props)
+        writer.write_template(f"avd/{self.device}.ini", self.props)
+        writer.write_template(f"avd/{self.device}.avd/config.ini", self.props)
 
         # Include a README.MD message.
         writer.write_template(
@@ -87,7 +88,7 @@ class EmulatorContainer(DockerContainer):
         )
 
         writer.write_template(
-            "launch-emulator.sh", {"extra": self.extra, "version": emu.__version__}
+            "launch-emulator.sh", {"extra": self.extra, "version": emu.__version__, "device": self.device}
         )
         writer.write_template("default.pa", {})
 
