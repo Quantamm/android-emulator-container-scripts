@@ -73,6 +73,15 @@ Interactively select and launch an emulator image:
 emu-docker interactive --start
 ```
 
+The interactive mode will prompt you to select a device template (e.g. Pixel 2,
+Pixel Tablet), then a system image and emulator version.
+
+To use a specific device template in non-interactive mode, pass `--device`:
+
+```sh
+emu-docker create stable "Q x86_64" --device PixelTablet
+```
+
 Then connect via ADB:
 
 ```sh
