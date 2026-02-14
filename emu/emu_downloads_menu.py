@@ -66,6 +66,7 @@ API_LETTER_MAPPING = {
     "33": "T",
     "34": "U",
     "35": "V",
+    "36": "W",
 }
 
 # Older versions might not work as expected.
