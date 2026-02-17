@@ -146,6 +146,8 @@ initialize_data_part() {
     ln -sf /data/android-home ${ANDROID_AVD_HOME}
     echo "path=${ANDROID_AVD_HOME}/{{device}}.avd" > ${ANDROID_AVD_HOME}/{{device}}.ini
   else
+    echo "Creating /root/.android directory"
+    mkdir /root/.android
     ln -sf /android-home ${ANDROID_AVD_HOME}
   fi
 }
