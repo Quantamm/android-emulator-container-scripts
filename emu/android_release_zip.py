@@ -173,6 +173,9 @@ class SystemImageReleaseZip(AndroidReleaseZip):
         "google_atd": "google_atd",
         "google_ndk_playstore": "ndk_playstore",
         "android-tv": "tv",
+        "google_apis,page_size_16kb": "google_ps16k",
+        "google_apis_playstore,page_size_16kb": "playstore_ps16k",
+        "page_size_16kb": "ps16k",
     }
 
     def __init__(self, file_name: str):
