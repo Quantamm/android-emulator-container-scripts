@@ -66,7 +66,8 @@ API_LETTER_MAPPING = {
     "33": "T",
     "34": "U",
     "35": "V",
-    "36": "W",
+    "36": "B",
+    "37": "C",
 }
 
 # Older versions might not work as expected.
@@ -284,12 +285,15 @@ def get_images_info(arm=False):
                     best_by_path[path] = (rev, has_linux, pkg)
     packages = [pkg for _, _, pkg in best_by_path.values()]
     infos = [SysImgInfo(item, licenses) for item in packages]
-    # Filter only for intel images that we know that work
+    # Filter only for intel images that we know that work.
+    # The letter comparison handles the original A-Z sequence, but API 36+
+    # resets the letter (e.g. "B"), so we also accept any image whose numeric
+    # API level is >= 36.
     x86_64_imgs = [
-        info for info in infos if info.abi == "x86_64" and info.letter >= MIN_REL_X64
+        info for info in infos if info.abi == "x86_64" and (info.letter >= MIN_REL_X64 or int(info.api) >= 36)
     ]
     x86_imgs = [
-        info for info in infos if info.abi == "x86" and info.letter >= MIN_REL_I386
+        info for info in infos if info.abi == "x86" and (info.letter >= MIN_REL_I386 or int(info.api) >= 36)
     ]
     slow = []
     if arm:
