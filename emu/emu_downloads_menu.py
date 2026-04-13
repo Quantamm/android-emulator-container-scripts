@@ -28,11 +28,11 @@ from emu.utils import download
 from emu.docker_config import DockerConfig
 
 SYSIMG_REPOS = [
-    "https://dl.google.com/android/repository/sys-img/android/sys-img2-1.xml",
-    "https://dl.google.com/android/repository/sys-img/google_apis/sys-img2-1.xml",
-    "https://dl.google.com/android/repository/sys-img/google_apis_playstore/sys-img2-1.xml",
-    "https://dl.google.com/android/repository/sys-img/google_atd/sys-img2-1.xml",
-    "https://dl.google.com/android/repository/sys-img/android-tv/sys-img2-1.xml",
+    "https://dl.google.com/android/repository/sys-img/android/sys-img2-3.xml",
+    "https://dl.google.com/android/repository/sys-img/google_apis/sys-img2-3.xml",
+    "https://dl.google.com/android/repository/sys-img/google_apis_playstore/sys-img2-3.xml",
+    "https://dl.google.com/android/repository/sys-img/google_atd/sys-img2-3.xml",
+    "https://dl.google.com/android/repository/sys-img/android-tv/sys-img2-3.xml",
 ]
 
 EMU_REPOS = ["https://dl.google.com/android/repository/repository2-1.xml"]
@@ -146,11 +146,16 @@ class SysImgInfo(LicensedObject):
         super(SysImgInfo, self).__init__(pkg, licenses)
         details = pkg.find("type-details")
         self.api = details.find("api-level").text
+        # API levels may be decimal (e.g. "37.0") or suffixed (e.g. "36x");
+        # extract the leading integer for mapping and filter comparisons.
+        api_match = re.match(r"(\d+)", self.api)
+        self.api_int = int(api_match.group(1)) if api_match else 0
 
         codename = details.find("codename")
         if codename is None:
-            if self.api in API_LETTER_MAPPING:
-                self.letter = API_LETTER_MAPPING[self.api]
+            api_key = str(self.api_int)
+            if api_key in API_LETTER_MAPPING:
+                self.letter = API_LETTER_MAPPING[api_key]
             else:
                 self.letter = "A"  # A indicates unknown code.
         else:
@@ -290,10 +295,10 @@ def get_images_info(arm=False):
     # resets the letter (e.g. "B"), so we also accept any image whose numeric
     # API level is >= 36.
     x86_64_imgs = [
-        info for info in infos if info.abi == "x86_64" and (info.letter >= MIN_REL_X64 or int(info.api) >= 36)
+        info for info in infos if info.abi == "x86_64" and (info.letter >= MIN_REL_X64 or info.api_int >= 36)
     ]
     x86_imgs = [
-        info for info in infos if info.abi == "x86" and (info.letter >= MIN_REL_I386 or int(info.api) >= 36)
+        info for info in infos if info.abi == "x86" and (info.letter >= MIN_REL_I386 or info.api_int >= 36)
     ]
     slow = []
     if arm:
