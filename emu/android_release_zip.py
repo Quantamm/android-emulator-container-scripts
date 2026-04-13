@@ -225,5 +225,15 @@ class SystemImageReleaseZip(AndroidReleaseZip):
         return tag
 
     def short_tag(self) -> str:
-        """A shorthand tag."""
-        return self.SHORT_TAG[self.tag()]
+        """A shorthand tag, with fallback for unknown modifier tags."""
+        tag = self.tag()
+        if tag in self.SHORT_TAG:
+            return self.SHORT_TAG[tag]
+        # Try progressively shorter comma-separated prefixes
+        parts = tag.split(",")
+        for i in range(len(parts) - 1, 0, -1):
+            prefix = ",".join(parts[:i])
+            if prefix in self.SHORT_TAG:
+                return self.SHORT_TAG[prefix]
+        logging.warning("Unknown tag: %s, using raw tag as short_tag", tag)
+        return tag

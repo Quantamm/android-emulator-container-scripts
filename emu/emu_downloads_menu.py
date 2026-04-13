@@ -190,7 +190,14 @@ class SysImgInfo(LicensedObject):
         )
 
     def short_tag(self):
-        return self.SHORT_TAG[self.tag]
+        if self.tag in self.SHORT_TAG:
+            return self.SHORT_TAG[self.tag]
+        parts = self.tag.split(",")
+        for i in range(len(parts) - 1, 0, -1):
+            prefix = ",".join(parts[:i])
+            if prefix in self.SHORT_TAG:
+                return self.SHORT_TAG[prefix]
+        return self.tag
 
     def short_abi(self):
         return self.SHORT_MAP[self.abi]
